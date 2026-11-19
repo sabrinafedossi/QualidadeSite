@@ -398,9 +398,6 @@
   <div class="brand">Qualidade em Pauta <span>Edição nº 01 · Novembro 2026</span></div>
   <div class="tb-actions">
     <div class="pageind" id="pageind">Págs. 1–2</div>
-    <button class="btn" id="btnEdit" title="Liga/desliga a edição dos textos">✎ Modo Edição</button>
-    <button class="btn" id="btnCopy" title="Copia os textos que você editou para mandar ao Claude">⧉ Copiar edições</button>
-    <button class="btn" id="btnReset" title="Volta tudo ao conteúdo original">↺ Restaurar</button>
   </div>
 </div>
 
@@ -814,7 +811,7 @@
       <div class="wip-wrap" id="wipw-${n}"><div class="wip" data-open="${n}">
         <div class="ic">${pencil}</div>
         <h3>Página ${n} • Em Construção</h3>
-        <p>Espaço reservado para o próximo bloco do informativo. Envie o rascunho e os textos desta página ou clique aqui no Modo Edição para rascunhar livremente.</p>
+        <p>Espaço reservado para o próximo bloco do informativo. Envie o rascunho e os textos desta página ou clique aqui para rascunhar livremente.</p>
       </div></div>
       <div class="draft" id="draft-${n}">
         <div class="dt" data-edit id="dt-${n}">Título da página ${n}</div>
@@ -837,10 +834,9 @@
   /* ---------- Modo edição ---------- */
   let editing=false;
   function setEditing(v){
-    editing=v;document.body.classList.toggle('editing',v);$('#btnEdit').classList.toggle('on',v);
+    editing=v;document.body.classList.toggle('editing',v);
     document.querySelectorAll('[data-edit]').forEach(el=>el.contentEditable=v?'true':'false');
   }
-  $('#btnEdit').onclick=()=>{setEditing(!editing);toast(editing?'Modo Edição ligado: clique em qualquer texto para editar':'Modo Edição desligado')};
   const originals={};
   document.querySelectorAll('[data-edit]').forEach(el=>{
     originals[el.id]=el.innerHTML;
@@ -877,29 +873,6 @@
   });
 
   document.querySelectorAll('.art-scroll').forEach(sc=>sc.addEventListener('scroll',()=>{const h=sc.parentNode.querySelector('.scroll-hint');if(h)h.style.opacity=0},{once:true}));
-
-  /* copiar edições */
-  $('#btnCopy').onclick=()=>{
-    const out=[];
-    document.querySelectorAll('[data-edit]').forEach(el=>{
-      if(store.get('t-'+el.id)===null||el.innerHTML===originals[el.id])return;
-      const pg=el.closest('.page');out.push('[Pág. '+(pg?pg.dataset.p:'?')+'] '+el.innerText.trim());
-    });
-    $('#copyTxt').value=out.length?out.join('\n\n'):'Nenhum texto editado neste navegador ainda.';
-    $('#dlgCopy').classList.add('show');setTimeout(()=>{$('#copyTxt').focus();$('#copyTxt').select()},50);
-  };
-  $('#copyClose').onclick=()=>$('#dlgCopy').classList.remove('show');
-  $('#copyDo').onclick=async()=>{const t=$('#copyTxt');t.select();try{await navigator.clipboard.writeText(t.value);toast('Copiado! Agora é só colar na conversa')}catch(e){try{document.execCommand('copy');toast('Copiado! Agora é só colar na conversa')}catch(e2){toast('Selecione o texto e use Ctrl+C')}}};
-
-  /* restaurar */
-  $('#btnReset').onclick=()=>$('#dlg').classList.add('show');
-  $('#dlgNo').onclick=()=>$('#dlg').classList.remove('show');
-  $('#dlgYes').onclick=()=>{
-    store.clear();
-    Object.entries(originals).forEach(([id,h])=>{const el=document.getElementById(id);if(el)el.innerHTML=h});
-    document.querySelectorAll('[data-photo]').forEach(fr=>setPhoto(fr,fr.dataset.def));
-    $('#dlg').classList.remove('show');toast('Folhetim restaurado');
-  };
 
   /* ---------- Navegação e escala ---------- */
   const pages=[...document.querySelectorAll('.page')];const total=pages.length;
